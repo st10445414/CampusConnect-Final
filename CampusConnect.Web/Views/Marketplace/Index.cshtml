@@ -1,0 +1,97 @@
+@model IEnumerable<CampusConnect.Web.Models.Listing>
+@using CampusConnect.Web.Models
+
+@{
+    ViewData["Title"] = "Marketplace";
+}
+
+<!-- Header -->
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1 style="font-size:26px;margin-bottom:4px;">Marketplace</h1>
+        <p style="font-size:14px;color:var(--neutral-500);">Buy and sell with verified students on campus.</p>
+    </div>
+    <a href="/Marketplace/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Post a listing</a>
+</div>
+
+<!-- Search & filter bar -->
+<form method="get" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div class="cc-search-wrap">
+        <i class="bi bi-search cc-search-icon"></i>
+        <input type="text" name="query" value="@ViewBag.Query" class="cc-search-input" placeholder="Search for textbooks, electronics, furniture..." />
+    </div>
+    <select name="category" class="cc-select">
+        <option value="All">All categories</option>
+        <option>Textbooks</option>
+        <option>Electronics</option>
+        <option>Furniture</option>
+        <option>Transport</option>
+        <option>Clothing</option>
+    </select>
+    <select name="condition" class="cc-select">
+        <option value="All">All conditions</option>
+        <option>New</option>
+        <option>Like New</option>
+        <option>Good</option>
+        <option>Fair</option>
+    </select>
+    <button type="submit" class="btn btn-outline-primary btn-md">Search</button>
+</form>
+
+<!-- Category chips -->
+<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+    @{
+        var categories = new[] { "All", "Textbooks", "Electronics", "Furniture", "Transport", "Clothing" };
+        var activeCat = ViewBag.Category ?? "All";
+    }
+    @foreach (var cat in categories)
+    {
+        <a href="/Marketplace?category=@cat&query=@ViewBag.Query" class="cc-chip @(activeCat == cat ? "active" : "")">@cat</a>
+    }
+</div>
+
+<!-- Results count -->
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:16px;">
+    Showing @Model.Count() @(Model.Count() == 1 ? "listing" : "listings")
+</p>
+
+<!-- Grid -->
+<div class="row g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 col-lg-3">
+            <a href="/Marketplace/Details/@item.ListingId" style="text-decoration:none;">
+                <div class="cc-listing-card">
+                    <div style="position:relative;">
+                        <div class="cc-listing-img-placeholder">@item.Category</div>
+                        <span class="cc-badge @(item.Status == ListingStatus.Available ? "cc-badge-available" : item.Status == ListingStatus.PendingReview ? "cc-badge-pending" : "cc-badge-sold")" style="position:absolute;top:10px;left:10px;">@item.Status</span>
+                    </div>
+                    <div style="padding:16px;">
+                        <div style="font-size:14px;font-weight:600;color:var(--neutral-900);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@item.Title</div>
+                        <div style="font-size:12px;color:var(--neutral-500);margin-bottom:8px;display:flex;align-items:center;gap:4px;">
+                            <i class="bi bi-geo-alt" style="font-size:12px;"></i> @item.Location &middot; @item.Condition
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                            <span style="font-size:20px;font-weight:700;color:var(--primary-700);">R@(item.Price)</span>
+                            <span style="font-size:11px;padding:2px 8px;border-radius:6px;background:var(--neutral-100);color:var(--neutral-600);">@item.Category</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px solid var(--neutral-100);">
+                            <div style="width:24px;height:24px;border-radius:50%;background:var(--primary-100);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--primary-700);">
+                                @(item.Seller?.FullName?.Substring(0,1).ToUpper() ?? "S")
+                            </div>
+                            <span style="font-size:12px;color:var(--neutral-600);">@(item.Seller?.FullName ?? "Student")</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div style="text-align:center;padding:60px 20px;color:var(--neutral-500);">
+        <p style="font-size:16px;margin-bottom:16px;">No listings match your search.</p>
+        <a href="/Marketplace" class="btn btn-outline-primary">Clear all filters</a>
+    </div>
+}

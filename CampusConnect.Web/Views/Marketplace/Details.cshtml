@@ -1,0 +1,120 @@
+@model CampusConnect.Web.Models.Listing
+@using Microsoft.AspNetCore.Identity
+@using CampusConnect.Web.Models
+@inject UserManager<ApplicationUser> _userManager
+
+@{
+    ViewData["Title"] = Model.Title;
+    var isFavourite = (bool)(ViewBag.IsFavourite ?? false);
+}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        @if (Model.Images.Any())
+        {
+            <div id="listingImageCarousel" class="carousel slide" data-bs-ride="carousel" style="border-radius:var(--radius-lg);overflow:hidden;">
+                <div class="carousel-inner">
+                    @for (int i = 0; i < Model.Images.Count; i++)
+                    {
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <img src="@Model.Images.ElementAt(i).Url" class="d-block w-100" alt="@Model.Title" style="height:350px;object-fit:cover;">
+                        </div>
+                    }
+                </div>
+                @if (Model.Images.Count > 1)
+                {
+                    <button class="carousel-control-prev" type="button" data-bs-target="#listingImageCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#listingImageCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                }
+            </div>
+        }
+        else
+        {
+            <div style="height:300px;border-radius:var(--radius-lg);background:linear-gradient(135deg,var(--neutral-100),var(--neutral-200));display:flex;align-items:center;justify-content:center;color:var(--neutral-400);font-size:16px;">
+                <i class="bi bi-image" style="font-size:48px;"></i>
+            </div>
+        }
+    </div>
+    <div class="col-md-6">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+            <div>
+                <h1 style="font-size:24px;margin-bottom:8px;">@Model.Title</h1>
+                <span style="font-size:13px;padding:3px 10px;border-radius:6px;background:var(--neutral-100);color:var(--neutral-600);">@Model.Category &middot; @Model.Condition</span>
+                <span class="badge @GetStatusBadge(Model.Status) ms-2">@Model.Status</span>
+            </div>
+            <span style="font-size:28px;font-weight:700;color:var(--primary-700);">R@(Model.Price)</span>
+        </div>
+        <div style="font-size:13px;color:var(--neutral-500);margin-bottom:16px;display:flex;align-items:center;gap:4px;">
+            <i class="bi bi-geo-alt" style="font-size:13px;"></i> @Model.Location
+        </div>
+        <hr style="border-color:var(--neutral-100);" />
+        <p style="font-size:14px;color:var(--neutral-600);line-height:1.6;margin-bottom:24px;">@Model.Description</p>
+
+        <!-- Seller info -->
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:var(--radius-md);background:var(--neutral-50);margin-bottom:20px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--primary-100);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--primary-700);">
+                @(Model.Seller?.FullName?.Substring(0,1).ToUpper() ?? "S")
+            </div>
+            <div>
+                <div style="font-size:14px;font-weight:600;">@(Model.Seller?.FullName ?? "Student")</div>
+                <div style="font-size:12px;color:var(--neutral-500);"><i class="bi bi-geo-alt" style="font-size:11px;"></i> @Model.Location</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            @if (Model.SellerId != _userManager.GetUserId(User))
+            {
+                <form asp-action="StartConversation" asp-controller="Messages" method="post">
+                    <input type="hidden" name="recipientId" value="@Model.SellerId" />
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-chat-dots"></i> Message seller</button>
+                </form>
+            }
+            <form asp-action="Toggle" asp-controller="Favourites" method="post">
+                <input type="hidden" name="listingId" value="@Model.ListingId" />
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn @(isFavourite ? "btn-danger" : "btn-outline-danger")">
+                    <i class="bi @(isFavourite ? "bi-heart-fill" : "bi-heart")"></i>
+                    @(isFavourite ? "Saved" : "Save")
+                </button>
+            </form>
+            @if (Model.SellerId == _userManager.GetUserId(User))
+            {
+                <form asp-action="MarkSold" asp-controller="Marketplace" asp-route-id="@Model.ListingId" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-success"><i class="bi bi-check-circle"></i> Mark as sold</button>
+                </form>
+            }
+        </div>
+
+        @if (Model.SellerId != _userManager.GetUserId(User))
+        {
+            <div style="margin-top:20px;padding:16px;border-radius:var(--radius-md);background:var(--error-50);border:1px solid var(--error-100);">
+                <h4 style="font-size:14px;margin-bottom:8px;color:var(--error-600);"><i class="bi bi-flag"></i> Report this listing</h4>
+                <form asp-action="Report" asp-controller="Marketplace" asp-route-id="@Model.ListingId" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="text" name="reason" class="cc-form-control mb-2" placeholder="Reason for reporting..." required />
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Submit report</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadge(ListingStatus status)
+    {
+        return status switch
+        {
+            ListingStatus.Available => "bg-success",
+            ListingStatus.PendingSale => "bg-warning",
+            ListingStatus.Sold => "bg-secondary",
+            ListingStatus.PendingReview => "bg-info",
+            _ => "bg-light text-dark"
+        };
+    }
+}

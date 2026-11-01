@@ -1,0 +1,63 @@
+@model IEnumerable<CampusConnect.Web.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "_AdminLayout";
+}
+
+<h1 style="font-size:26px;margin-bottom:4px;">User Management</h1>
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:24px;">Manage user accounts, verification, and roles.</p>
+
+<div class="cc-admin-table-wrap">
+    <table class="cc-admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Faculty</th>
+                <th>Verified</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td style="font-weight:600;color:var(--neutral-800);">@user.FullName</td>
+                    <td>@user.Email</td>
+                    <td>@user.Faculty</td>
+                    <td>
+                        @if (user.IsVerified)
+                        {
+                            <span class="cc-badge cc-badge-available"><i class="bi bi-patch-check"></i> Verified</span>
+                        }
+                        else
+                        {
+                            <span class="cc-badge cc-badge-pending">Unverified</span>
+                        }
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <form method="post" asp-controller="Admin" asp-action="ToggleVerified" asp-route-id="@user.Id" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Toggle verification" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-patch-check" style="color:var(--accent-600);font-size:15px;"></i>
+                                </button>
+                            </form>
+                            <form method="post" asp-controller="Admin" asp-action="MakeAdmin" asp-route-id="@user.Id" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Make admin" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-shield-lock" style="color:var(--primary-700);font-size:15px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div style="padding:40px;text-align:center;color:var(--neutral-500);">No users found.</div>
+    }
+</div>

@@ -1,0 +1,85 @@
+@model IEnumerable<CampusConnect.Web.Models.Listing>
+@using CampusConnect.Web.Models
+
+@{
+    ViewData["Title"] = "Marketplace Management";
+    Layout = "_AdminLayout";
+}
+
+<h1 style="font-size:26px;margin-bottom:4px;">Marketplace Management</h1>
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:24px;">Review, approve, and remove marketplace listings.</p>
+
+<!-- Search & filter -->
+<form method="get" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div class="cc-search-wrap">
+        <i class="bi bi-search cc-search-icon"></i>
+        <input type="text" name="query" value="@ViewBag.Query" class="cc-search-input" placeholder="Search listings or sellers..." />
+    </div>
+    <select name="status" class="cc-select">
+        <option value="all" selected="@(ViewBag.Status == "all")">All statuses</option>
+        <option value="Available" selected="@(ViewBag.Status == "Available")">Available</option>
+        <option value="PendingReview" selected="@(ViewBag.Status == "PendingReview")">Pending</option>
+        <option value="Sold" selected="@(ViewBag.Status == "Sold")">Sold</option>
+    </select>
+    <button type="submit" class="btn btn-outline-primary btn-md">Search</button>
+</form>
+
+<!-- Table -->
+<div class="cc-admin-table-wrap">
+    <table class="cc-admin-table">
+        <thead>
+            <tr>
+                <th>Listing</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:40px;height:40px;border-radius:8px;background:var(--neutral-100);display:flex;align-items:center;justify-content:center;color:var(--neutral-400);">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            <span style="font-size:14px;font-weight:600;color:var(--neutral-800);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@item.Title</span>
+                        </div>
+                    </td>
+                    <td style="font-weight:600;color:var(--primary-700);">R@(item.Price)</td>
+                    <td style="color:var(--neutral-600);">@item.Category</td>
+                    <td>
+                        <span class="cc-badge @(item.Status == ListingStatus.Available ? "cc-badge-available" : item.Status == ListingStatus.PendingReview ? "cc-badge-pending" : "cc-badge-sold")">
+                            @item.Status
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <a href="/Marketplace/Details/@item.ListingId" title="View" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                                <i class="bi bi-eye" style="color:var(--neutral-600);font-size:15px;"></i>
+                            </a>
+                            <form method="post" asp-controller="Admin" asp-action="ApproveListing" asp-route-id="@item.ListingId" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Approve" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-check-circle" style="color:var(--accent-600);font-size:15px;"></i>
+                                </button>
+                            </form>
+                            <form method="post" asp-controller="Admin" asp-action="RemoveListing" asp-route-id="@item.ListingId" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Remove" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-trash" style="color:var(--error-500);font-size:15px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div style="padding:40px;text-align:center;color:var(--neutral-500);">No listings found.</div>
+    }
+</div>

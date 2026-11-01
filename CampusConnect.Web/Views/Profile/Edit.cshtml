@@ -1,0 +1,50 @@
+@model CampusConnect.Web.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <h1 style="font-size:26px;margin-bottom:4px;">Edit Profile</h1>
+        <p style="font-size:14px;color:var(--neutral-500);margin-bottom:28px;">Update your account details.</p>
+
+        <div style="padding:28px;border-radius:var(--radius-lg);background:var(--neutral-0);border:1px solid var(--neutral-100);box-shadow:var(--shadow-sm);">
+            <form asp-action="Edit" asp-controller="Profile" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <div class="mb-3">
+                    <label class="cc-form-label">Full name</label>
+                    <input asp-for="FullName" class="cc-form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="cc-form-label">Faculty</label>
+                    <select asp-for="Faculty" class="cc-form-control">
+                        <option>Faculty of Engineering</option>
+                        <option>Faculty of Science</option>
+                        <option>Faculty of Commerce</option>
+                        <option>Faculty of Humanities</option>
+                        <option>Faculty of Health Sciences</option>
+                        <option>Faculty of Law</option>
+                        <option>Administration</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="cc-form-label">Year of study</label>
+                    <select asp-for="YearOfStudy" class="cc-form-control">
+                        <option>1st Year</option>
+                        <option>2nd Year</option>
+                        <option>3rd Year</option>
+                        <option>4th Year / Honours</option>
+                        <option>Postgraduate</option>
+                        <option>Staff</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:12px;">
+                    <button type="submit" class="btn btn-primary btn-lg flex-grow-1">Save changes</button>
+                    <a href="/Profile" class="btn btn-ghost btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

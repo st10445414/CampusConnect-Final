@@ -1,0 +1,105 @@
+@model CampusConnect.Web.Models.Service
+@using Microsoft.AspNetCore.Identity
+@using CampusConnect.Web.Models
+@inject UserManager<ApplicationUser> _userManager
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div style="height:300px;border-radius:var(--radius-lg);background:linear-gradient(135deg,var(--neutral-100),var(--neutral-200));display:flex;align-items:center;justify-content:center;color:var(--neutral-400);">
+            <i class="bi bi-wrench" style="font-size:48px;"></i>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+            <div>
+                <h1 style="font-size:24px;margin-bottom:8px;">@Model.Title</h1>
+                <span style="font-size:13px;padding:3px 10px;border-radius:6px;background:var(--neutral-100);color:var(--neutral-600);">@Model.Category</span>
+            </div>
+            <span style="font-size:28px;font-weight:700;color:var(--primary-700);">@Model.Price</span>
+        </div>
+        <div style="font-size:14px;color:var(--warning-600);margin-bottom:16px;">
+            <i class="bi bi-star-fill"></i> @Model.GetAverageRating().ToString("0.0") <span style="color:var(--neutral-500);font-size:13px;">(@Model.Reviews.Count reviews)</span>
+        </div>
+        <hr style="border-color:var(--neutral-100);" />
+        <p style="font-size:14px;color:var(--neutral-600);line-height:1.6;margin-bottom:24px;">@Model.Description</p>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:var(--radius-md);background:var(--neutral-50);margin-bottom:20px;">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--primary-100);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--primary-700);">
+                @(Model.Provider?.FullName?.Substring(0,1).ToUpper() ?? "S")
+            </div>
+            <div>
+                <div style="font-size:14px;font-weight:600;">@(Model.Provider?.FullName ?? "Student")</div>
+                <div style="font-size:12px;color:var(--neutral-500);">@Model.Provider?.Faculty</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+            @if (Model.ProviderId != _userManager.GetUserId(User))
+            {
+                <form asp-action="StartConversation" asp-controller="Messages" method="post" class="flex-grow-1">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="recipientId" value="@Model.ProviderId" />
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-chat-dots"></i> Contact provider</button>
+                </form>
+            }
+        </div>
+
+        @if (Model.ProviderId != _userManager.GetUserId(User))
+        {
+            <form asp-controller="Service" asp-action="AddReview" method="post" style="padding:20px;border-radius:var(--radius-md);background:var(--neutral-50);margin-bottom:16px;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="serviceId" value="@Model.ServiceId" />
+                <label class="cc-form-label">Rate this service</label>
+                <select name="rating" class="cc-form-control mb-2">
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Average</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Bad</option>
+                </select>
+                <label class="cc-form-label">Comment</label>
+                <textarea name="comment" class="cc-form-control" rows="2" placeholder="Leave a review..."></textarea>
+                <button type="submit" class="btn btn-primary btn-sm mt-2"><i class="bi bi-chat-dots"></i> Post review</button>
+            </form>
+        }
+
+        @if (Model.ProviderId == _userManager.GetUserId(User))
+        {
+            <form asp-controller="Service" asp-action="Delete" asp-route-id="@Model.ServiceId" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Remove this service?')"><i class="bi bi-trash"></i> Remove</button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (Model.Reviews.Any())
+{
+    <div style="margin-top:32px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Reviews</h3>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+            @foreach (var review in Model.Reviews.OrderByDescending(r => r.DatePosted))
+            {
+                <div style="padding:16px;border-radius:var(--radius-md);background:var(--neutral-0);border:1px solid var(--neutral-100);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:var(--primary-100);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--primary-700);">
+                                @(review.Reviewer?.FullName?.Substring(0,1).ToUpper() ?? "S")
+                            </div>
+                            <span style="font-size:13px;font-weight:600;">@(review.Reviewer?.FullName ?? "Student")</span>
+                        </div>
+                        <span style="font-size:13px;color:var(--warning-600);">
+                            @for (int i = 0; i < review.Rating; i++) { <i class="bi bi-star-fill"></i> }
+                        </span>
+                    </div>
+                    <p style="font-size:14px;color:var(--neutral-600);margin:0;">@review.Comment</p>
+                    <div style="font-size:12px;color:var(--neutral-400);margin-top:4px;">@review.DatePosted.ToString("yyyy-MM-dd")</div>
+                </div>
+            }
+        </div>
+    </div>
+}

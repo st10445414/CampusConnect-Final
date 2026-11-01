@@ -1,0 +1,77 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore CampusConnect/CampusConnect.sln
+
+    - name: Build
+      run: dotnet build CampusConnect/CampusConnect.sln --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test CampusConnect/CampusConnect.sln --configuration Release --no-build --verbosity normal
+
+  deploy-staging:
+    needs: build-test
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Publish
+      run: dotnet publish CampusConnect/CampusConnect.Web/CampusConnect.Web.csproj -c Release -o ./publish
+
+    - name: Deploy to staging
+      run: |
+        echo "Deploy step: configure your hosting provider publish profile here."
+        echo "Options: Azure App Service, Render, Railway, Fly.io, or any ASP.NET-compatible host."
+        echo "Set DEPLOY_HOST, DEPLOY_USER, DEPLOY_KEY in GitHub Secrets."
+        # Example for Azure:
+        # azure/webapps-deploy@v3 with app-name and publish-profile secrets
+        # Example for generic SCP/rsync:
+        # rsync -avz ./publish/ user@host:/var/www/campusconnect/
+
+  deploy-production:
+    needs: build-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Publish
+      run: dotnet publish CampusConnect/CampusConnect.Web/CampusConnect.Web.csproj -c Release -o ./publish
+
+    - name: Deploy to production
+      run: |
+        echo "Deploy step: configure your hosting provider publish profile here."
+        echo "Set production deployment secrets in GitHub."
+        # Configure your chosen hosting provider's deployment step here.

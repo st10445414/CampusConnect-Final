@@ -1,0 +1,80 @@
+@model IEnumerable<CampusConnect.Web.Models.Report>
+
+@{
+    ViewData["Title"] = "Reports & Moderation";
+    Layout = "_AdminLayout";
+}
+
+<h1 style="font-size:26px;margin-bottom:4px;">Reports & Moderation</h1>
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:24px;">Review user reports and take moderation action.</p>
+
+<!-- Filter tabs -->
+<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+    @{
+        var allCount = Model.Count();
+        var pendingCount = Model.Count(r => r.Status == CampusConnect.Web.Models.ReportStatus.Pending);
+        var resolvedCount = Model.Count(r => r.Status == CampusConnect.Web.Models.ReportStatus.Resolved);
+        var dismissedCount = Model.Count(r => r.Status == CampusConnect.Web.Models.ReportStatus.Dismissed);
+        var tabs = new[] {
+            new { Val = "all", Label = "All reports", Count = allCount },
+            new { Val = "pending", Label = "Pending", Count = pendingCount },
+            new { Val = "resolved", Label = "Resolved", Count = resolvedCount },
+            new { Val = "dismissed", Label = "Dismissed", Count = dismissedCount },
+        };
+        var activeFilter = ViewBag.Filter ?? "all";
+    }
+    @foreach (var t in tabs)
+    {
+        <a href="/Admin/Reports?filter=@t.Val" class="cc-chip @(activeFilter == t.Val ? "active" : "")" style="display:flex;align-items:center;gap:6px;">
+            @t.Label
+            <span style="font-size:11px;padding:1px 7px;border-radius:100px;background:@(activeFilter == t.Val ? "rgba(255,255,255,0.2)" : "var(--neutral-100)");">@t.Count</span>
+        </a>
+    }
+</div>
+
+<!-- Report cards -->
+<div style="display:flex;flex-direction:column;gap:16px;">
+    @foreach (var r in Model)
+    {
+        var statusBg = r.Status == CampusConnect.Web.Models.ReportStatus.Pending ? "var(--warning-50)" : r.Status == CampusConnect.Web.Models.ReportStatus.Resolved ? "var(--accent-50)" : "var(--neutral-100)";
+        var statusColor = r.Status == CampusConnect.Web.Models.ReportStatus.Pending ? "var(--warning-600)" : r.Status == CampusConnect.Web.Models.ReportStatus.Resolved ? "var(--accent-600)" : "var(--neutral-500)";
+        var statusIcon = r.Status == CampusConnect.Web.Models.ReportStatus.Pending ? "bi-exclamation-triangle" : r.Status == CampusConnect.Web.Models.ReportStatus.Resolved ? "bi-check-circle" : "bi-x-circle";
+
+        <div class="cc-report-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:40px;height:40px;border-radius:10px;background:var(--error-50);display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-flag" style="color:var(--error-500);font-size:18px;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:15px;font-weight:600;color:var(--neutral-900);">@r.TargetType</div>
+                        <div style="font-size:13px;color:var(--neutral-500);">Reported on @r.DateReported.ToShortDateString()</div>
+                    </div>
+                </div>
+                <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:600;background:@statusBg;color:@statusColor;">
+                    <i class="@statusIcon" style="font-size:12px;"></i> @r.Status
+                </span>
+            </div>
+            <div style="padding:12px 16px;border-radius:var(--radius-md);background:var(--neutral-50);font-size:14px;color:var(--neutral-700);margin-bottom:16px;">
+                <strong>Reason:</strong> @r.Reason
+            </div>
+            @if (r.Status == CampusConnect.Web.Models.ReportStatus.Pending)
+            {
+                <div style="display:flex;gap:12px;">
+                    <form method="post" asp-controller="Admin" asp-action="ResolveReport" asp-route-id="@r.ReportId">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-secondary btn-sm"><i class="bi bi-check-circle"></i> Resolve</button>
+                    </form>
+                    <form method="post" asp-controller="Admin" asp-action="DismissReport" asp-route-id="@r.ReportId">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-x-circle"></i> Dismiss</button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+    @if (!Model.Any())
+    {
+        <div style="padding:40px;text-align:center;color:var(--neutral-500);">No reports in this category.</div>
+    }
+</div>

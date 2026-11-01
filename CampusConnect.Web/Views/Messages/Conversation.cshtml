@@ -1,0 +1,130 @@
+@model IEnumerable<CampusConnect.Web.Models.Message>
+
+@{
+    ViewData["Title"] = "Chat";
+    var conversationId = ViewBag.ConversationId;
+    var currentUserId = ViewBag.CurrentUserId;
+    var otherUserName = ViewBag.OtherUserName;
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-header bg-primary text-white d-flex align-items-center gap-3">
+            <a href="@Url.Action("Index", "Messages")" class="text-white text-decoration-none">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center"
+                 style="width: 40px; height: 40px; font-weight: 600;">
+                @(otherUserName != null && otherUserName.ToString().Length > 0 ? otherUserName.ToString()[0] : '?')
+            </div>
+            <h5 class="mb-0">@otherUserName</h5>
+        </div>
+
+        <div id="messageList" class="card-body message-list" style="height: 450px; overflow-y: auto; background: #f8f9fa;">
+            @if (!Model.Any())
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-chat" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No messages yet. Say hello!</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var msg in Model)
+                {
+                    var isMine = msg.SenderId == currentUserId;
+                    <div class="message-bubble @(isMine ? "mine" : "theirs")" data-message-id="@msg.MessageId">
+                        <div class="bubble @(isMine ? "bg-primary text-white" : "bg-white border")"
+                             style="max-width: 70%; padding: 10px 16px; border-radius: 18px; margin-bottom: 8px;">
+                            <p class="mb-0">@msg.Content</p>
+                            <small class="@(isMine ? "text-white-50" : "text-muted")" style="font-size: 11px;">
+                                @msg.SentAt.ToString("dd MMM, HH:mm")
+                            </small>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="card-footer">
+            <form id="chatForm" method="post" action="@Url.Action("SendMessage", "Messages")" class="d-flex gap-2">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="conversationId" value="@conversationId" />
+                <input type="text" name="content" id="messageInput" class="form-control"
+                       placeholder="Type a message..." autocomplete="off" required maxlength="2000" />
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+    <script>
+        (function () {
+            var conversationId = "@conversationId";
+            var currentUserId = "@currentUserId";
+            var otherUserName = "@otherUserName";
+            var messageList = document.getElementById("messageList");
+
+            messageList.scrollTop = messageList.scrollHeight;
+
+            var connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chathub")
+                .build();
+
+            connection.on("ReceiveMessage", function (data) {
+                if (data.conversationId !== parseInt(conversationId)) return;
+
+                var isMine = data.senderId === currentUserId;
+                var wrapper = document.createElement("div");
+                wrapper.className = "message-bubble " + (isMine ? "mine" : "theirs");
+
+                var bubble = document.createElement("div");
+                bubble.className = "bubble " + (isMine ? "bg-primary text-white" : "bg-white border");
+                bubble.style.maxWidth = "70%";
+                bubble.style.padding = "10px 16px";
+                bubble.style.borderRadius = "18px";
+                bubble.style.marginBottom = "8px";
+
+                var contentP = document.createElement("p");
+                contentP.className = "mb-0";
+                contentP.textContent = data.content;
+                bubble.appendChild(contentP);
+
+                var time = document.createElement("small");
+                time.className = isMine ? "text-white-50" : "text-muted";
+                time.style.fontSize = "11px";
+                var sentDate = new Date(data.sentAt);
+                time.textContent = sentDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' + sentDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                bubble.appendChild(time);
+
+                wrapper.appendChild(bubble);
+                messageList.appendChild(wrapper);
+                messageList.scrollTop = messageList.scrollHeight;
+            });
+
+            connection.start().then(function () {
+                return connection.invoke("JoinConversation", parseInt(conversationId));
+            }).catch(function (err) {
+                console.error("SignalR connection error:", err.toString());
+            });
+
+            var form = document.getElementById("chatForm");
+            form.addEventListener("submit", function (e) {
+                var input = document.getElementById("messageInput");
+                var content = input.value.trim();
+                if (!content) return;
+
+                e.preventDefault();
+
+                connection.invoke("SendMessage", parseInt(conversationId), currentUserId, "", content)
+                    .catch(function (err) { console.error(err.toString()); });
+
+                form.submit();
+            });
+        })();
+    </script>
+}

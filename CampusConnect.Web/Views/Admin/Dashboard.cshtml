@@ -1,0 +1,131 @@
+@model IEnumerable<CampusConnect.Web.Models.Report>
+
+@{
+    ViewData["Title"] = "Admin Overview";
+    Layout = "_AdminLayout";
+}
+
+<div style="margin-bottom:32px;">
+    <h1 style="font-size:26px;margin-bottom:4px;">Admin Overview</h1>
+    <p style="font-size:14px;color:var(--neutral-500);">Platform health and activity at a glance.</p>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+    @{
+        var stats = new[] {
+            new { Icon = "bi-people", Label = "Total users", Value = ViewBag.TotalUsers ?? "1,240", Change = "+12 this week", Color = "var(--primary-700)", Bg = "var(--primary-50)" },
+            new { Icon = "bi-bag", Label = "Marketplace listings", Value = ViewBag.TotalListings, Change = "+8 today", Color = "var(--accent-600)", Bg = "var(--accent-50)" },
+            new { Icon = "bi-building", Label = "Accommodation", Value = ViewBag.TotalAccommodations, Change = "+2 this week", Color = "var(--warning-600)", Bg = "var(--warning-50)" },
+            new { Icon = "bi-flag", Label = "Pending reports", Value = ViewBag.PendingReports, Change = "Needs attention", Color = "var(--error-500)", Bg = "var(--error-50)" },
+        };
+    }
+    @foreach (var s in stats)
+    {
+        <div class="col-md-6 col-lg-3">
+            <div style="padding:24px;border-radius:var(--radius-md);background:var(--neutral-0);border:1px solid var(--neutral-100);box-shadow:var(--shadow-sm);">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                    <div style="width:44px;height:44px;border-radius:12px;background:@s.Bg;display:flex;align-items:center;justify-content:center;">
+                        <i class="@s.Icon" style="color:@s.Color;font-size:22px;"></i>
+                    </div>
+                    <span style="font-size:12px;color:var(--neutral-400);font-weight:500;">@s.Change</span>
+                </div>
+                <div style="font-size:32px;font-weight:700;color:var(--neutral-900);font-family:var(--font-head);">@s.Value</div>
+                <div style="font-size:14px;color:var(--neutral-500);">@s.Label</div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Two column layout -->
+<div class="row g-4">
+    <!-- Recent reports -->
+    <div class="col-md-6">
+        <div style="padding:24px;border-radius:var(--radius-lg);background:var(--neutral-0);border:1px solid var(--neutral-100);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h2 style="font-size:18px;display:flex;align-items:center;gap:8px;">
+                    <i class="bi bi-exclamation-triangle" style="color:var(--error-500);"></i> Recent reports
+                </h2>
+                <a href="/Admin/Reports" style="font-size:13px;color:var(--primary-700);font-weight:600;display:flex;align-items:center;gap:4px;">
+                    View all <i class="bi bi-arrow-right" style="font-size:12px;"></i>
+                </a>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0;">
+                @foreach (var r in Model.Take(4))
+                {
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--neutral-100);">
+                        <div style="width:8px;height:8px;border-radius:50%;background:@(r.Status == CampusConnect.Web.Models.ReportStatus.Pending ? "var(--warning-500)" : r.Status == CampusConnect.Web.Models.ReportStatus.Resolved ? "var(--accent-500)" : "var(--neutral-300)");flex-shrink:0;"></div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:14px;font-weight:600;color:var(--neutral-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@r.TargetType</div>
+                            <div style="font-size:12px;color:var(--neutral-500);">@r.Reason &middot; @r.DateReported.ToShortDateString()</div>
+                        </div>
+                        <span style="font-size:12px;padding:3px 10px;border-radius:100px;font-weight:600;background:@(r.Status == CampusConnect.Web.Models.ReportStatus.Pending ? "var(--warning-50)" : r.Status == CampusConnect.Web.Models.ReportStatus.Resolved ? "var(--accent-50)" : "var(--neutral-100)");color:@(r.Status == CampusConnect.Web.Models.ReportStatus.Pending ? "var(--warning-600)" : r.Status == CampusConnect.Web.Models.ReportStatus.Resolved ? "var(--accent-600)" : "var(--neutral-500)");">
+                            @r.Status
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Platform health -->
+    <div class="col-md-6">
+        <div style="padding:24px;border-radius:var(--radius-lg);background:var(--neutral-0);border:1px solid var(--neutral-100);">
+            <h2 style="font-size:18px;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                <i class="bi bi-graph-up-arrow" style="color:var(--primary-700);"></i> Platform health
+            </h2>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+                @{
+                    var healthItems = new[] {
+                        new { Label = "Verified users", Value = "1,180", Total = "1,240", Pct = 95, Color = "var(--accent-500)" },
+                        new { Label = "Active listings", Value = "320", Total = "340", Pct = 94, Color = "var(--primary-700)" },
+                        new { Label = "Resolved reports", Value = "8", Total = "12", Pct = 67, Color = "var(--warning-500)" },
+                    };
+                }
+                @foreach (var item in healthItems)
+                {
+                    <div>
+                        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+                            <span style="color:var(--neutral-600);">@item.Label</span>
+                            <span style="font-weight:600;color:var(--neutral-800);">@item.Value/@item.Total</span>
+                        </div>
+                        <div class="cc-progress-track">
+                            <div class="cc-progress-fill" style="width:@(item.Pct)%;background:@item.Color;"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div style="margin-top:20px;padding:16px;border-radius:var(--radius-md);background:var(--accent-50);display:flex;align-items:center;gap:10px;">
+                <i class="bi bi-check-circle" style="color:var(--accent-600);font-size:20px;"></i>
+                <span style="font-size:13px;color:var(--accent-700);">All systems operational. No critical issues detected.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick actions -->
+<div style="margin-top:24px;padding:24px;border-radius:var(--radius-lg);background:var(--neutral-0);border:1px solid var(--neutral-100);">
+    <h2 style="font-size:18px;margin-bottom:16px;">Quick actions</h2>
+    <div class="row g-3">
+        @{
+            var actions = new[] {
+                new { Label = "Review marketplace", Link = "/Admin/Marketplace", Icon = "bi-bag" },
+                new { Label = "Manage users", Link = "/Admin/Users", Icon = "bi-people" },
+                new { Label = "Review reports", Link = "/Admin/Reports", Icon = "bi-flag" },
+                new { Label = "Check services", Link = "/Admin/Services", Icon = "bi-wrench" },
+            };
+        }
+        @foreach (var a in actions)
+        {
+            <div class="col-md-3">
+                <a href="@a.Link" style="text-decoration:none;">
+                    <div style="padding:16px;border-radius:var(--radius-md);border:1px solid var(--neutral-100);display:flex;align-items:center;gap:10px;transition:all 0.2s ease;">
+                        <i class="@a.Icon" style="color:var(--primary-700);font-size:18px;"></i>
+                        <span style="font-size:14px;font-weight:600;color:var(--neutral-700);">@a.Label</span>
+                        <i class="bi bi-arrow-right" style="color:var(--neutral-400);font-size:14px;margin-left:auto;"></i>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>

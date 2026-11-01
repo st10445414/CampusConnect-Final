@@ -1,0 +1,76 @@
+@model CampusConnect.Web.Models.Listing
+
+@{
+    ViewData["Title"] = "Post a listing";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <h1 style="font-size:26px;margin-bottom:4px;">Post a new listing</h1>
+        <p style="font-size:14px;color:var(--neutral-500);margin-bottom:28px;">Fill in the details below to list your item on the marketplace.</p>
+
+        @if (TempData["Success"] != null)
+        {
+            <div style="padding:12px 16px;border-radius:var(--radius-md);background:var(--accent-50);color:var(--accent-700);font-size:14px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+                <i class="bi bi-check-circle"></i> @TempData["Success"]
+            </div>
+        }
+
+        <div style="padding:28px;border-radius:var(--radius-lg);background:var(--neutral-0);border:1px solid var(--neutral-100);box-shadow:var(--shadow-sm);">
+            <form asp-action="Create" asp-controller="Marketplace" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                <div class="mb-3">
+                    <label class="cc-form-label">Title</label>
+                    <input asp-for="Title" class="cc-form-control" placeholder="e.g. Calculus Textbook (8th Ed.)" />
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="cc-form-label">Price (R)</label>
+                        <input asp-for="Price" class="cc-form-control" type="number" placeholder="320" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="cc-form-label">Category</label>
+                        <select asp-for="Category" class="cc-form-control">
+                            <option>Textbooks</option>
+                            <option>Electronics</option>
+                            <option>Furniture</option>
+                            <option>Transport</option>
+                            <option>Clothing</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mt-0">
+                    <div class="col-md-6">
+                        <label class="cc-form-label">Condition</label>
+                        <select asp-for="Condition" class="cc-form-control">
+                            <option>New</option>
+                            <option>Like New</option>
+                            <option>Good</option>
+                            <option>Fair</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="cc-form-label">Location</label>
+                        <input asp-for="Location" class="cc-form-control" placeholder="Main Campus" />
+                    </div>
+                </div>
+                <div class="mb-3 mt-3">
+                    <label class="cc-form-label">Description</label>
+                    <textarea asp-for="Description" class="cc-form-control" rows="4" placeholder="Describe your item..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="cc-form-label">Upload images (up to 5)</label>
+                    <input type="file" name="images" multiple accept="image/jpeg,image/png,image/webp,image/gif"
+                           class="form-control" />
+                    <small class="text-muted">JPG, PNG, WebP or GIF. Max 5MB per image.</small>
+                </div>
+                <div style="display:flex;gap:12px;">
+                    <button type="submit" class="btn btn-primary btn-lg flex-grow-1">Post listing</button>
+                    <a href="/Marketplace" class="btn btn-ghost btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

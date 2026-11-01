@@ -1,0 +1,51 @@
+@model IEnumerable<CampusConnect.Web.Models.Accommodation>
+
+@{
+    ViewData["Title"] = "Accommodation Management";
+    Layout = "_AdminLayout";
+}
+
+<h1 style="font-size:26px;margin-bottom:4px;">Accommodation Management</h1>
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:24px;">Review and remove accommodation listings.</p>
+
+<div class="cc-admin-table-wrap">
+    <table class="cc-admin-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Rent/mo</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="font-weight:600;color:var(--neutral-800);">@item.Title</td>
+                    <td>@item.Type</td>
+                    <td style="font-weight:600;color:var(--primary-700);">R@(item.RentPerMonth)</td>
+                    <td>@item.Location</td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <a href="/Accommodation/Details/@item.AccommodationId" title="View" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                                <i class="bi bi-eye" style="color:var(--neutral-600);font-size:15px;"></i>
+                            </a>
+                            <form method="post" asp-controller="Admin" asp-action="RemoveAccommodation" asp-route-id="@item.AccommodationId" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Remove" onclick="return confirm('Remove this listing?')" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-trash" style="color:var(--error-500);font-size:15px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div style="padding:40px;text-align:center;color:var(--neutral-500);">No accommodation listings found.</div>
+    }
+</div>

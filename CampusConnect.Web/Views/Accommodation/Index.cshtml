@@ -1,0 +1,83 @@
+@model IEnumerable<CampusConnect.Web.Models.Accommodation>
+@using CampusConnect.Web.Models
+
+@{
+    ViewData["Title"] = "Accommodation";
+}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1 style="font-size:26px;margin-bottom:4px;">Accommodation</h1>
+        <p style="font-size:14px;color:var(--neutral-500);">Find rooms, flats, and house shares near campus.</p>
+    </div>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a href="/Accommodation/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Post accommodation</a>
+    }
+</div>
+
+<form method="get" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div class="cc-search-wrap">
+        <i class="bi bi-search cc-search-icon"></i>
+        <input type="text" name="query" value="@ViewBag.Query" class="cc-search-input" placeholder="Search by title or location..." />
+    </div>
+    <select name="type" class="cc-select">
+        <option value="All">All types</option>
+        <option>Studio</option>
+        <option>Flat</option>
+        <option>House</option>
+        <option>Cottage</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--neutral-600);">
+        <input type="checkbox" name="furnishedOnly" value="true" @(ViewBag.FurnishedOnly != null && (bool)ViewBag.FurnishedOnly ? "checked" : "") /> Furnished only
+    </label>
+    <button type="submit" class="btn btn-outline-primary btn-md">Search</button>
+</form>
+
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:16px;">
+    Showing @Model.Count() @(Model.Count() == 1 ? "listing" : "listings")
+</p>
+
+<div class="row g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <a href="/Accommodation/Details/@item.AccommodationId" style="text-decoration:none;">
+                <div class="cc-listing-card">
+                    <div style="position:relative;">
+                        <div class="cc-listing-img-placeholder">
+                            <i class="bi bi-building" style="font-size:32px;"></i>
+                        </div>
+                        <span class="cc-badge cc-badge-neutral" style="position:absolute;top:10px;right:10px;">@item.Type</span>
+                    </div>
+                    <div style="padding:16px;">
+                        <div style="font-size:14px;font-weight:600;color:var(--neutral-900);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@item.Title</div>
+                        <div style="font-size:12px;color:var(--neutral-500);margin-bottom:8px;display:flex;align-items:center;gap:4px;">
+                            <i class="bi bi-geo-alt" style="font-size:12px;"></i> @item.Location
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="font-size:20px;font-weight:700;color:var(--primary-700);">R@(item.RentPerMonth)<span style="font-size:12px;font-weight:400;color:var(--neutral-500);">/month</span></span>
+                        </div>
+                        <div style="font-size:12px;color:var(--neutral-600);display:flex;gap:12px;">
+                            <span><i class="bi bi-door-open"></i> @item.Bedrooms bed</span>
+                            <span><i class="bi bi-droplet"></i> @item.Bathrooms bath</span>
+                            @if (item.IsFurnished)
+                            {
+                                <span style="color:var(--accent-600);"><i class="bi bi-check-circle"></i> Furnished</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div style="text-align:center;padding:60px 20px;color:var(--neutral-500);">
+        <i class="bi bi-building" style="font-size:48px;margin-bottom:16px;display:block;"></i>
+        <p style="font-size:16px;margin-bottom:16px;">No accommodation matches your search.</p>
+        <a href="/Accommodation" class="btn btn-outline-primary">Clear all filters</a>
+    </div>
+}

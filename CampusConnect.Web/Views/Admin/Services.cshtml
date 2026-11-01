@@ -1,0 +1,51 @@
+@model IEnumerable<CampusConnect.Web.Models.Service>
+
+@{
+    ViewData["Title"] = "Services Management";
+    Layout = "_AdminLayout";
+}
+
+<h1 style="font-size:26px;margin-bottom:4px;">Services Management</h1>
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:24px;">Review and remove service listings.</p>
+
+<div class="cc-admin-table-wrap">
+    <table class="cc-admin-table">
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Provider</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="font-weight:600;color:var(--neutral-800);">@item.Title</td>
+                    <td>@item.Category</td>
+                    <td style="font-weight:600;color:var(--primary-700);">@item.Price</td>
+                    <td>@(item.Provider?.FullName ?? "Unknown")</td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <a href="/Service/Details/@item.ServiceId" title="View" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;display:flex;align-items:center;justify-content:center;text-decoration:none;">
+                                <i class="bi bi-eye" style="color:var(--neutral-600);font-size:15px;"></i>
+                            </a>
+                            <form method="post" asp-controller="Admin" asp-action="RemoveService" asp-route-id="@item.ServiceId" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" title="Remove" onclick="return confirm('Remove this service?')" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--neutral-200);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-trash" style="color:var(--error-500);font-size:15px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div style="padding:40px;text-align:center;color:var(--neutral-500);">No services found.</div>
+    }
+</div>

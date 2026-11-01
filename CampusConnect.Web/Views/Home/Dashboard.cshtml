@@ -1,0 +1,105 @@
+@model IEnumerable<CampusConnect.Web.Models.Listing>
+@using CampusConnect.Web.Models
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- Welcome banner -->
+<div class="cc-welcome-banner">
+    <div>
+        <h1>Welcome back, @User.Identity?.Name</h1>
+        <p>Verified account &middot; Your campus hub at a glance.</p>
+    </div>
+    <a href="/Marketplace/Create" class="btn btn-secondary btn-md">Post a new listing <i class="bi bi-plus-lg"></i></a>
+</div>
+
+<!-- Quick stat cards -->
+<div class="row g-3 mb-4">
+    @{
+        var cards = new[] {
+            new { Icon = "bi-bag", Label = "Marketplace", Val = Model.Count() + " listings", Color = "var(--primary-700)", Bg = "var(--primary-50)", Link = "/Marketplace" },
+            new { Icon = "bi-building", Label = "Accommodation", Val = "12 available", Color = "var(--accent-600)", Bg = "var(--accent-50)", Link = "/Accommodation" },
+            new { Icon = "bi-wrench", Label = "Services", Val = "85 providers", Color = "var(--warning-600)", Bg = "var(--warning-50)", Link = "/Service" },
+            new { Icon = "bi-heart", Label = "Saved items", Val = "7 saved", Color = "var(--error-500)", Bg = "var(--error-50)", Link = "/Marketplace" },
+        };
+    }
+    @foreach (var c in cards)
+    {
+        <div class="col-md-6 col-lg-3">
+            <a href="@c.Link" style="text-decoration:none;">
+                <div class="cc-stat-card">
+                    <div class="cc-stat-icon" style="background:@c.Bg;">
+                        <i class="@c.Icon" style="color:@c.Color;font-size:20px;"></i>
+                    </div>
+                    <div class="cc-stat-label">@c.Label</div>
+                    <div class="cc-stat-value">@c.Val</div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Recent listings -->
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h2 class="cc-section-title" style="margin-bottom:0;">Recent marketplace listings</h2>
+    <a href="/Marketplace" style="font-size:14px;color:var(--primary-700);font-weight:600;display:flex;align-items:center;gap:4px;">
+        View all <i class="bi bi-arrow-right"></i>
+    </a>
+</div>
+
+<div class="row g-4">
+    @foreach (var item in Model.Take(4))
+    {
+        <div class="col-md-6 col-lg-3">
+            <a href="/Marketplace/Details/@item.ListingId" style="text-decoration:none;">
+                <div class="cc-listing-card">
+                    <div style="position:relative;">
+                        <div class="cc-listing-img-placeholder">@item.Category</div>
+                        <span class="cc-badge cc-badge-neutral" style="position:absolute;top:10px;right:10px;">@item.Condition</span>
+                        @{
+                            var statusClass = item.Status == ListingStatus.Available ? "cc-badge-available" : item.Status == ListingStatus.PendingReview ? "cc-badge-pending" : "cc-badge-sold";
+                        }
+                    </div>
+                    <div style="padding:14px;">
+                        <div style="font-size:14px;font-weight:600;color:var(--neutral-900);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@item.Title</div>
+                        <div style="font-size:12px;color:var(--neutral-500);margin-bottom:8px;">@item.Category &middot; @item.Location</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:18px;font-weight:700;color:var(--primary-700);">R@(item.Price)</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Activity feed -->
+<div style="margin-top:32px;padding:24px;border-radius:var(--radius-lg);background:var(--neutral-0);border:1px solid var(--neutral-100);">
+    <h3 style="font-size:18px;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <i class="bi bi-graph-up-arrow" style="color:var(--primary-700);"></i> Campus activity
+    </h3>
+    <div style="display:flex;flex-direction:column;gap:0;">
+        @{
+            var activities = new[] {
+                new { Icon = "bi-building", Text = "New accommodation listing in Rondebosch", Time = "2 hours ago" },
+                new { Icon = "bi-wrench", Text = "Liam Chen posted a new service: Maths & Physics Tutoring", Time = "5 hours ago" },
+                new { Icon = "bi-bag", Text = "3 new textbooks added to marketplace", Time = "1 day ago" },
+                new { Icon = "bi-eye", Text = "Your listing received 12 new views", Time = "2 days ago" },
+            };
+        }
+        @for (int i = 0; i < activities.Length; i++)
+        {
+            var a = activities[i];
+            <div class="cc-activity-item">
+                <div class="cc-activity-icon">
+                    <i class="@a.Icon" style="color:var(--neutral-500);font-size:18px;"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:14px;color:var(--neutral-800);">@a.Text</div>
+                    <div style="font-size:12px;color:var(--neutral-400);">@a.Time</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

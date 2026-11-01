@@ -1,0 +1,87 @@
+@model IEnumerable<CampusConnect.Web.Models.Service>
+@using CampusConnect.Web.Models
+
+@{
+    ViewData["Title"] = "Services";
+}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1 style="font-size:26px;margin-bottom:4px;">Student Services</h1>
+        <p style="font-size:14px;color:var(--neutral-500);">Tutoring, repairs, design, and more - offered by students.</p>
+    </div>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a href="/Service/Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Offer a service</a>
+    }
+</div>
+
+<form method="get" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div class="cc-search-wrap">
+        <i class="bi bi-search cc-search-icon"></i>
+        <input type="text" name="query" value="@ViewBag.Query" class="cc-search-input" placeholder="Search services or providers..." />
+    </div>
+    <select name="category" class="cc-select">
+        <option value="All">All categories</option>
+        <option>Tutoring</option>
+        <option>Personal Care</option>
+        <option>Repairs</option>
+        <option>Academic</option>
+        <option>Creative</option>
+        <option>Transport</option>
+    </select>
+    <button type="submit" class="btn btn-outline-primary btn-md">Search</button>
+</form>
+
+<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+    @{
+        var categories = new[] { "All", "Tutoring", "Personal Care", "Repairs", "Academic", "Creative", "Transport" };
+        var activeCat = ViewBag.Category ?? "All";
+    }
+    @foreach (var cat in categories)
+    {
+        <a href="/Service?category=@cat" class="cc-chip @(activeCat == cat ? "active" : "")">@cat</a>
+    }
+</div>
+
+<p style="font-size:14px;color:var(--neutral-500);margin-bottom:16px;">
+    Showing @Model.Count() @(Model.Count() == 1 ? "service" : "services")
+</p>
+
+<div class="row g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <a href="/Service/Details/@item.ServiceId" style="text-decoration:none;">
+                <div class="cc-listing-card">
+                    <div style="position:relative;">
+                        <div class="cc-listing-img-placeholder">
+                            <i class="bi bi-wrench" style="font-size:32px;"></i>
+                        </div>
+                        <span class="cc-badge cc-badge-neutral" style="position:absolute;top:10px;right:10px;">@item.Category</span>
+                    </div>
+                    <div style="padding:16px;">
+                        <div style="font-size:14px;font-weight:600;color:var(--neutral-900);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@item.Title</div>
+                        <div style="font-size:12px;color:var(--neutral-500);margin-bottom:8px;">@(item.Provider?.FullName ?? "Student")</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="font-size:18px;font-weight:700;color:var(--primary-700);">@item.Price</span>
+                            <span style="font-size:13px;color:var(--warning-600);">
+                                <i class="bi bi-star-fill"></i> @item.GetAverageRating().ToString("0.0")
+                            </span>
+                        </div>
+                        <div style="font-size:12px;color:var(--neutral-500);">@item.Reviews.Count reviews</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div style="text-align:center;padding:60px 20px;color:var(--neutral-500);">
+        <i class="bi bi-wrench" style="font-size:48px;margin-bottom:16px;display:block;"></i>
+        <p style="font-size:16px;margin-bottom:16px;">No services match your search.</p>
+        <a href="/Service" class="btn btn-outline-primary">Clear all filters</a>
+    </div>
+}
