@@ -160,6 +160,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine(ex.ToString());
         Console.WriteLine("===================================");
         logger.LogError(ex, "An error occurred while seeding the database.");
+        throw;
     }
 }
 
