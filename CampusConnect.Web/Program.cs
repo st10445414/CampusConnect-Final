@@ -63,11 +63,8 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        if (app.Environment.IsDevelopment())
-        {
-            await context.Database.EnsureDeletedAsync();
-        }
-        await context.Database.EnsureCreatedAsync();
+        
+        await context.Database.MigrateAsync();
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var roles = new[] { "Student", "Admin" };
